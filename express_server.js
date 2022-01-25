@@ -1,4 +1,5 @@
 const express = require("express");
+const bodyParser = require('body-parser');
 const app = express();
 const PORT = 8080; // default port 8080
 
@@ -7,7 +8,24 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
-app.set("view engine", "ejs")
+const generateRandomString = function () {
+  const length = 6;
+  const strAlphaNumeric ='abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ;';
+  let strReturn = '';
+  for (let i = 0; i <= length; i++) {
+    strReturn += Math.floor(Math.random() * strAlphaNumeric.length);    
+  }
+  return strReturn;
+};
+
+
+app.set("view engine", "ejs");
+app.use(bodyParser.urlencoded({extended: true}));
+
+app.post("/urls", (req, res) => {
+  console.log(req.body);
+  res.send("Ok");
+});
 
 app.get("/", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>");
@@ -19,8 +37,7 @@ app.get("/urls.json", (req, res) => {
 
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
-})
-
+});
 
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase["9sm5xK"] };
