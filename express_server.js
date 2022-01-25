@@ -25,15 +25,17 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
   urlDatabase[shortURL] = req.body.longURL;
-  res.send("Ok");
+  res.redirect("/urls");
+});
+
+app.post("/urls/:shortURL/delete", (req, res) => {
+  delete urlDatabase[req.params.shortURL];
+  res.redirect("/urls");
 });
 
 app.get("/", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>");
-});
-
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
+  const templateVars = { urls: urlDatabase };
+  res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
