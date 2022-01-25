@@ -24,8 +24,9 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
+  const redirectPage = `urls/${shortURL}`;
   urlDatabase[shortURL] = req.body.longURL;
-  res.redirect("/urls");
+  res.redirect(redirectPage);
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
@@ -33,9 +34,9 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   res.redirect("/urls");
 });
 
-app.get("/", (req, res) => {
-  const templateVars = { urls: urlDatabase };
-  res.render("urls_index", templateVars);
+app.post("/urls/:id", (req, res) => {
+  urlDatabase[req.params.id] = req.body.longURL;
+  res.redirect("/urls");
 });
 
 app.get("/urls/new", (req, res) => {
@@ -52,6 +53,11 @@ app.get("/urls/:shortURL", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
+  const templateVars = { urls: urlDatabase };
+  res.render("urls_index", templateVars);
+});
+
+app.get("/", (req, res) => {
   const templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
 });
