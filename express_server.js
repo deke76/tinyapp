@@ -8,9 +8,9 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
-const generateRandomString = function () {
+const generateRandomString = function() {
   const length = 6;
-  const strAlphaNumeric ='abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ;';
+  const strAlphaNumeric = 'abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   let strReturn = '';
   for (let i = 0; i <= length; i++) {
     strReturn += strAlphaNumeric[Math.floor(Math.random() * strAlphaNumeric.length)];
@@ -41,7 +41,7 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  res.redirect(urlDatabase[req.params.shortURL])
+  res.redirect(urlDatabase[req.params.shortURL]);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
