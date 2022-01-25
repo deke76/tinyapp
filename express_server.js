@@ -13,7 +13,7 @@ const generateRandomString = function () {
   const strAlphaNumeric ='abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ;';
   let strReturn = '';
   for (let i = 0; i <= length; i++) {
-    strReturn += Math.floor(Math.random() * strAlphaNumeric.length);    
+    strReturn += strAlphaNumeric[Math.floor(Math.random() * strAlphaNumeric.length)];
   }
   return strReturn;
 };
@@ -23,7 +23,8 @@ app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended: true}));
 
 app.post("/urls", (req, res) => {
-  console.log(req.body);
+  const shortURL = generateRandomString();
+  urlDatabase[shortURL] = req.body.longURL;
   res.send("Ok");
 });
 
@@ -39,8 +40,12 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
+app.get("/u/:shortURL", (req, res) => {
+  res.redirect(urlDatabase[req.params.shortURL])
+});
+
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase["9sm5xK"] };
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
   res.render("urls_show", templateVars);
 });
 
