@@ -9,14 +9,16 @@
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
       </div>
-      <% if (!username) { %>
+      <% if (user === undefined) { %>
+        <% console.log('user is undefined'); %>
         <form class="form-inline" action="/login" method="POST">
           <label for="username"></label>
           <input class="form-control" type="text" name="username" placeholder="User Name">
           <button type="submit" class="btn btn-primary ml-2" value="Login" >Login</button></form>
       <% } else { %>
+        <% console.log('user is', user); %>
         <form class="form-inline" action="/logout" method="POST">
-          <label class="text-light" for="username"><%= username %></label>
+          <label class="text-light" for="username"><%= user.email %></label>
           <button type="submit" class="btn btn-primary ml-2" name="username"value="Logout">Logout</button></form>
       <% } %>
     </div>
