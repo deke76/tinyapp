@@ -46,11 +46,13 @@ app.post("/urls", (req, res) => {
 });
 
 // Create a new userID & registration profile from registration page
-// app.post("/register", (req, res) => {
-//   const userID = generateRandomString();
-//   userDB[userID] = userID;
-//   console.log('POST /register', userDB);
-// });
+app.post("/register", (req, res) => {
+  const userID = generateRandomString();
+  userDB[userID] = { id: userID,
+    password: req.body.password,
+    email: req.body.email };
+  res.redirect("/urls");
+});
 
 // Delete shortURL and longURL
 app.post("/urls/:shortURL/delete", (req, res) => {
