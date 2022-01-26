@@ -47,7 +47,7 @@ const findUserByEmail = function(objUserList, strUserEmail) {
       return objUserList[user];
     }
   }
-  return null;
+  return false;
 };
 
 /********* REGISTRATION *****************************************/
@@ -75,10 +75,8 @@ app.post("/register", (req, res) => {
 app.get("/register", (req, res) => {
   const templateVars = {
     user: userDB[req.cookies["user_id"]] };
-  console.log('GET /register');
-  console.log(templateVars);
-  // if (user.username) res.redirect("/urls");
-  // else
+  // console.log('GET /register');
+  // console.log(templateVars);
   res.render("register.ejs", templateVars);
 });
 
@@ -90,17 +88,15 @@ app.get("/login", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  console.log('POST /login')
+  // console.log('POST /login');
   const currentUser = findUserByEmail(userDB, req.body.email);
-  console.log('currentUser password:', currentUser.password);
-  console.log('entered password', req.body.password);
   if (currentUser.password === req.body.password) {
     res.cookie('user_id', currentUser.id);
-    console.log(req.cookies['user_id']);
-    console.log(currentUser);
+    // console.log(req.cookies['user_id']);
+    // console.log(currentUser);
     res.render("urls_index", {urls: urlDatabase, user: currentUser});
   } else {
-    res.send("Invalid password.");
+    res.status(403).send("User not found or password incorrect");
     res.end();
   }
 });
