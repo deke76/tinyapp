@@ -5,13 +5,22 @@ const cookieParser = require('cookie-parser');
 const app = express();
 const PORT = 8080; // default port 8080
 
-// user database
+// URL database
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
 
-// Create a random string for ShortURL
+// user database
+const userDB = {
+  'deke76': {
+    id: "deke76",
+    email: "some@email.com",
+    password: "p@55w0Rd"
+  }
+};
+
+// Create a random string for ShortURL & userID
 const generateRandomString = function() {
   const length = 6;
   const strAlphaNumeric = 'abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -36,6 +45,13 @@ app.post("/urls", (req, res) => {
   res.redirect(redirectPage);
 });
 
+// Create a new userID & registration profile from registration page
+// app.post("/register", (req, res) => {
+//   const userID = generateRandomString();
+//   userDB[userID] = userID;
+//   console.log('POST /register', userDB);
+// });
+
 // Delete shortURL and longURL
 app.post("/urls/:shortURL/delete", (req, res) => {
   delete urlDatabase[req.params.shortURL];
@@ -51,7 +67,7 @@ app.post("/urls/:id", (req, res) => {
 
 // Create the username on login from _header.ejs
 app.post("/login", (req, res) => {
-  res.cookie('username', req.body.username)
+  res.cookie('username', req.body.username);
   res.redirect('/urls');
 });
 
@@ -92,6 +108,18 @@ app.get("/urls", (req, res) => {
   console.log('GET /urls');
   console.log('Cookie:', templateVars.username);
   res.render("urls_index", templateVars);
+});
+
+// GET Registration page
+app.get("/register", (req, res) => {
+  const templateVars = {
+    username: req.cookies["username"],
+    email: 'name@example.com' };
+  console.log('GET /register');
+  console.log(templateVars);
+  // if (user.username) res.redirect("/urls");
+  // else
+  res.render("register.ejs", templateVars);
 });
 
 // Return the root directory from urls_index.ejs
