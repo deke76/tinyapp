@@ -2,7 +2,6 @@
 const express = require("express");
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
-const { cookie } = require("express/lib/response");
 const app = express();
 const PORT = 8080; // default port 8080
 
@@ -33,7 +32,7 @@ app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
   console.log('/urls');
   urlDatabase[shortURL] = req.body.longURL;
-  const redirectPage = `urls/${shortURL}`;
+  const redirectPage = `/urls/${shortURL}`;
   res.redirect(redirectPage);
 });
 
@@ -46,15 +45,19 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 // Update the longURL from urls_show.ejs
 app.post("/urls/:id", (req, res) => {
   urlDatabase[req.params.id] = req.body.longURL;
-  console.log(`POST /urls/${req.params.id}`)
+  console.log(`POST /urls/${req.params.id}`);
   res.redirect("/urls");
 });
 
 // Create the username on login from _header.ejs
 app.post("/login", (req, res) => {
-  console.log('Username:', req.body.username);
-  res.cookie('username', req.body.username);
-  console.log('Cookies:', req.cookies.username);
+  res.cookie('username', req.body.username)
+  res.redirect('/urls');
+});
+
+// Logout username & clear cookie from _header.ejs
+app.post("/logout", (req, res) => {
+  res.clearCookie('username');
   res.redirect('/urls');
 });
 
@@ -62,14 +65,13 @@ app.post("/login", (req, res) => {
 app.get("/urls/new", (req, res) => {
   const templateVars = {
     username: req.cookies["username"] };
-  console.log('GET urls/new')
+  console.log('GET urls/new');
   res.render("urls_new", templateVars);
 });
 
 // Redirect when shortURL is input
 app.get("/u/:shortURL", (req, res) => {
   res.redirect(urlDatabase[req.params.shortURL]);
-  console.log(`GET /u/${urlreq.params.shortURL}`);
 });
 
 // Update the URL
@@ -82,12 +84,13 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-// RNavigation button to GET to URL index screen
+// Navigation button to GET to URL index screen
 app.get("/urls", (req, res) => {
   const templateVars = {
     urls: urlDatabase,
     username: req.cookies["username"] };
   console.log('GET /urls');
+  console.log('Cookie:', templateVars.username);
   res.render("urls_index", templateVars);
 });
 
