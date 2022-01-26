@@ -5,6 +5,11 @@ const cookieParser = require('cookie-parser');
 const app = express();
 const PORT = 8080; // default port 8080
 
+// Setup view engine and required middleware
+app.set("view engine", "ejs");
+app.use(bodyParser.urlencoded({extended: true}));
+app.use(cookieParser());
+
 // URL database
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -31,10 +36,14 @@ const generateRandomString = function() {
   return strReturn;
 };
 
-// Setup view engine and required middleware
-app.set("view engine", "ejs");
-app.use(bodyParser.urlencoded({extended: true}));
-app.use(cookieParser());
+// Search the objUserList for the email provided in strUserEmail
+const findUserByEmail = function(objUserList, strUserEmail) {
+  for (const user in objUserList) {
+    console.log('find function:', objUserList[user].email === strUserEmail);
+    if (user.email === strUserEmail) return user;
+  }
+  return null;
+}
 
 // Create a new TinyURL from urls_new.ejs
 app.post("/urls", (req, res) => {
@@ -47,12 +56,22 @@ app.post("/urls", (req, res) => {
 
 // Create a new userID & registration profile from registration page
 app.post("/register", (req, res) => {
-  const userID = generateRandomString();
-  userDB[userID] = { id: userID,
-    password: req.body.password,
-    email: req.body.email };
-  res.cookie('user_id', userID);
-  res.redirect("/urls");
+  if ((req.body.password === '') || (req.body.email === '')) {
+    res.status(400).send("No empty fields allowed.");
+    res.end();
+  } else if (findUserByEmail(userDB, req.body.email)) {
+    console.log('userDB', userDB, 'reg email:', req.body.email);
+    res.status(400).send("User already exists!");
+    res.end();
+  } else {
+    const userID = generateRandomString();
+    userDB[userID] = {
+      id: userID,
+      password: req.body.password,
+      email: req.body.email };
+    res.cookie('user_id', userID);
+    res.redirect("/urls");
+  }
 });
 
 // Delete shortURL and longURL
@@ -68,9 +87,9 @@ app.post("/urls/:id", (req, res) => {
   res.redirect("/urls");
 });
 
-// Create the username on login from _header.ejs
+// Find the user in usersDB on login from _header.ejs
 app.post("/login", (req, res) => {
-  res.cookie('username', req.body.username);
+  
   res.redirect('/urls');
 });
 
