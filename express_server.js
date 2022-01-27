@@ -82,7 +82,7 @@ const urlsForUser = (id) => {
   let userURLS = {};
   for (const url in urlDatabase) {
     if (urlDatabase[url].userID === id) {
-      userURLS[url] = { 
+      userURLS[url] = {
         longURL: urlDatabase[url].longURL,
         userID: urlDatabase[url].userID
       };
@@ -171,6 +171,16 @@ app.post("/no_login", (req, res) => {
 });
 
 /********* URL MANIPULATION **************************************/
+app.get("/not_owner", (req, res) => {
+  const templateVars = {
+    user: userDB[req.cookies["user_id"]] };
+  res.render("not_owner", templateVars);
+});
+
+app.post("/not_owner", (req, res) => {
+  res.redirect("/urls");
+});
+
 // Create a new TinyURL from urls_new.ejs
 app.post("/urls/new", (req, res) => {
   console.log('POST /urls/new express_server ln 120');
@@ -209,31 +219,24 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 app.post("/urls/:id", (req, res) => {
   console.log(`POST /urls/${req.params.id} express_server ln 140`);
   if (req.cookies["user_id"]) {
-    if (req.cookies["user_id"] === urlDatabase[req.params.id].userID) {
+    if (req.cookies["user_id"] !== urlDatabase[req.params.id].userID) {
+      console.log("POST/URLS");
+      res.redirect("/not_owner");
+    } else {
       urlDatabase[req.params.id].longURL = req.body.longURL;
       res.redirect("/urls");
-    } else res.redirect("not_owner");
+    }
   } else res.redirect("no_login");
 });
 
 // GET the update URL page
 app.get("/urls/:shortURL", (req, res) => {
-  console.log(`GET /urls/${req.params.shortURL} express_server ln 154`);
+  console.log(`GET /urls/${req.params} express_server ln 154`);
   const templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL].longURL,
     user: userDB[req.cookies["user_id"]] };
   res.render("urls_show", templateVars);
-});
-
-app.get("/not_owner", (req, res) => {
-  const templateVars = {
-    user: userDB[req.cookies["user_id"]] };
-  res.render("not_owner", templateVars);
-});
-
-app.post("/not_owner", (req, res) => {
-  res.redirect("/urls");
 });
 
 /**************** SITE NAVIGATION ******************************/
