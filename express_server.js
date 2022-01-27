@@ -2,6 +2,7 @@
 const express = require("express");
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
+const bcrypt = require('bcryptjs');
 const app = express();
 const PORT = 8080; // default port 8080
 
@@ -106,7 +107,7 @@ app.post("/register", (req, res) => {
     const userID = generateRandomString();
     userDB[userID] = {
       id: userID,
-      password: req.body.password,
+      password: bcrypt.hashSync(req.body.password, 10);
       email: req.body.email };
     res.cookie('user_id', userID);
     res.redirect("/urls");
@@ -121,12 +122,14 @@ app.get("/register", (req, res) => {
   res.render("register.ejs", templateVars);
 });
 
+// GET page for non-registered users
 app.get("/no_reg", (req, res) => {
   const templateVars = {
     user: userDB[req.cookies["user_id"]] };
   res.render("no_reg", templateVars);
 });
 
+// POST button on non-registered page to redirect to registraion page
 app.post("/no_reg", (req, res) => {
   res.redirect("/register");
 });
@@ -138,6 +141,7 @@ app.get("/login", (req, res) => {
   res.render("login", { user: undefined });
 });
 
+// POST the results of the login form and redirect as necessary
 app.post("/login", (req, res) => {
   console.log('POST /login express_server ln 93');
   const currentUser = findUserByEmail(userDB, req.body.email);
@@ -146,7 +150,7 @@ app.post("/login", (req, res) => {
       res.cookie('user_id', currentUser.id);
       res.render("urls_index", {urls: urlsForUser(currentUser.id), user: currentUser});
     } else {
-      res.status(403)
+      res.status(403);
       res.redirect("no_login");
       res.end();
     }
@@ -160,23 +164,27 @@ app.post("/logout", (req, res) => {
   res.redirect('/urls');
 });
 
+// GET non-logged in user notice
 app.get("/no_login", (req, res) => {
   const templateVars = {
     user: userDB[req.cookies["user_id"]] };
   res.render("no_login", templateVars);
 });
 
+// POST the logoing form after pushing notification button on no-login page
 app.post("/no_login", (req, res) => {
   res.redirect("/login");
 });
 
 /********* URL MANIPULATION **************************************/
+// GET notification that user isn't owner of URL
 app.get("/not_owner", (req, res) => {
   const templateVars = {
     user: userDB[req.cookies["user_id"]] };
   res.render("not_owner", templateVars);
 });
 
+// POST the button to return user to URL index
 app.post("/not_owner", (req, res) => {
   res.redirect("/urls");
 });
