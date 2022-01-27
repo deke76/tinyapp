@@ -120,23 +120,31 @@ app.post("/urls/new", (req, res) => {
   res.redirect(redirectPage);
 });
 
+// Navigation button to GET to screen to create new URL
+app.get("/urls/new", (req, res) => {
+  console.log('GET urls/new express_server ln 125');
+  const templateVars = {
+    user: userDB[req.cookies["user_id"]] };
+  res.render("urls_new", templateVars);
+});
+
 // Delete shortURL and longURL
 app.post("/urls/:shortURL/delete", (req, res) => {
-  console.log(`POST urls/:${req.params.shortURL}, express_server ln 125`)
+  console.log(`POST urls/:${req.params.shortURL}, express_server ln 133`)
   delete urlDatabase[req.params.shortURL];
   res.redirect("/urls");
 });
 
 // Update the longURL from urls_show.ejs
 app.post("/urls/:id", (req, res) => {
-  console.log(`POST /urls/${req.params.id} express_server ln 132`);
+  console.log(`POST /urls/${req.params.id} express_server ln 140`);
   urlDatabase[req.params.id] = req.body.longURL;
   res.redirect("/urls");
 });
 
 // Update the URL
 app.get("/urls/:shortURL", (req, res) => {
-  console.log(`GET /urls/${req.params.shortURL} express_server ln 139`);
+  console.log(`GET /urls/${req.params.shortURL} express_server ln 147`);
   const templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL],
@@ -145,14 +153,6 @@ app.get("/urls/:shortURL", (req, res) => {
 });
 
 /**************** SITE NAVIGATION ******************************/
-// Navigation button to GET to screen to create new URL
-app.get("/urls/new", (req, res) => {
-  console.log('GET urls/new express_server ln 150');
-  const templateVars = {
-    user: userDB[req.cookies["user_id"]] };
-  res.render("urls_new", templateVars);
-});
-
 // Navigation button to GET to URL index screen
 app.get("/urls", (req, res) => {
   console.log('GET /urls express_server ln 158');
