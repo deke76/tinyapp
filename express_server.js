@@ -29,6 +29,7 @@ const userDB = {
 /***************  HELPER FUNCTIONs  *****************************/
 // Create a random string for ShortURL & userID
 const generateRandomString = function() {
+  console.log('generateRandomString express_server ln 32');
   const length = 6;
   const strAlphaNumeric = 'abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   let strReturn = '';
@@ -40,6 +41,7 @@ const generateRandomString = function() {
 
 // Search the objUserList for the email provided in strUserEmail
 const findUserByEmail = function(objUserList, strUserEmail) {
+  console.log('findUserByEmail express_server ln 44');
   for (const user in objUserList) {
     // console.log('find function:', user.email === strUserEmail);
     if (objUserList[user].email === strUserEmail) {
@@ -53,6 +55,7 @@ const findUserByEmail = function(objUserList, strUserEmail) {
 /********* REGISTRATION *****************************************/
 // Create a new userID & registration profile from registration page
 app.post("/register", (req, res) => {
+  console.log('POST /register express_server ln 58');
   if ((req.body.password === '') || (req.body.email === '')) {
     res.status(400).send("No empty fields allowed.");
     res.end();
@@ -73,22 +76,21 @@ app.post("/register", (req, res) => {
 
 // GET Registration page
 app.get("/register", (req, res) => {
+  console.log('GET /register express_server ln 79');
   const templateVars = {
     user: userDB[req.cookies["user_id"]] };
-  // console.log('GET /register');
-  // console.log(templateVars);
   res.render("register.ejs", templateVars);
 });
 
 /************** LOGIN & LOGOUT **********************************/
 // Find the user in usersDB on login from _header.ejs
 app.get("/login", (req, res) => {
-  console.log('GET /login');
+  console.log('GET /login express_server ln 88');
   res.render("login", { user: undefined });
 });
 
 app.post("/login", (req, res) => {
-  // console.log('POST /login');
+  console.log('POST /login express_server ln 93');
   const currentUser = findUserByEmail(userDB, req.body.email);
   if (currentUser.password === req.body.password) {
     res.cookie('user_id', currentUser.id);
@@ -103,15 +105,16 @@ app.post("/login", (req, res) => {
 
 // Logout username & clear cookie from _header.ejs
 app.post("/logout", (req, res) => {
+  console.log('POST /logout express_server ln 108');
   res.clearCookie('user_id');
   res.redirect('/urls');
 });
 
 /********* URL MANIPULATION **************************************/
 // Create a new TinyURL from urls_new.ejs
-app.post("/urls", (req, res) => {
+app.post("/urls/new", (req, res) => {
+  console.log('POST /urls/new express_server ln 116');
   const shortURL = generateRandomString();
-  console.log('/urls');
   urlDatabase[shortURL] = req.body.longURL;
   const redirectPage = `/urls/${shortURL}`;
   res.redirect(redirectPage);
@@ -119,42 +122,43 @@ app.post("/urls", (req, res) => {
 
 // Delete shortURL and longURL
 app.post("/urls/:shortURL/delete", (req, res) => {
+  console.log(`POST urls/:${req.params.shortURL}, express_server ln 125`)
   delete urlDatabase[req.params.shortURL];
   res.redirect("/urls");
 });
 
 // Update the longURL from urls_show.ejs
 app.post("/urls/:id", (req, res) => {
+  console.log(`POST /urls/${req.params.id} express_server ln 132`);
   urlDatabase[req.params.id] = req.body.longURL;
-  console.log(`POST /urls/${req.params.id}`);
   res.redirect("/urls");
 });
 
 // Update the URL
 app.get("/urls/:shortURL", (req, res) => {
+  console.log(`GET /urls/${req.params.shortURL} express_server ln 139`);
   const templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL],
     user: userDB[req.cookies["user_id"]] };
-  console.log(`GET /urls/${req.params.shortURL}`);
   res.render("urls_show", templateVars);
 });
 
 /**************** SITE NAVIGATION ******************************/
 // Navigation button to GET to screen to create new URL
 app.get("/urls/new", (req, res) => {
+  console.log('GET urls/new express_server ln 150');
   const templateVars = {
     user: userDB[req.cookies["user_id"]] };
-  console.log('GET urls/new', templateVars);
   res.render("urls_new", templateVars);
 });
 
 // Navigation button to GET to URL index screen
 app.get("/urls", (req, res) => {
+  console.log('GET /urls express_server ln 158');
   const templateVars = {
     urls: urlDatabase,
     user: userDB[req.cookies["user_id"]] };
-  console.log('GET /urls');
   console.log('user_id:', req.cookies["user_id"]);
   console.log('Cookie:', templateVars);
   res.render("urls_index", templateVars);
@@ -162,11 +166,13 @@ app.get("/urls", (req, res) => {
 
 // Redirect when shortURL is input
 app.get("/u/:shortURL", (req, res) => {
+  console.log(`GET /u/:${req.params.shortURL} express_server ln 169`);
   res.redirect(urlDatabase[req.params.shortURL]);
 });
 
 // Return the root directory from urls_index.ejs
 app.get("/", (req, res) => {
+  console.log('GET / express_server ln 175');
   const templateVars = {
     urls: urlDatabase,
     user: userDB[req.cookies["user_id"]] };
