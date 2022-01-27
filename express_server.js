@@ -5,18 +5,7 @@ const cookieSession = require('cookie-session');
 const bcrypt = require('bcryptjs');
 const app = express();
 const PORT = 8080; // default port 8080
-
-// Create a random string for ShortURL, middleware & userID
-const generateRandomString = function() {
-  console.log('generateRandomString express_server ln 32');
-  const length = 6;
-  const strAlphaNumeric = 'abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  let strReturn = '';
-  for (let i = 0; i <= length; i++) {
-    strReturn += strAlphaNumeric[Math.floor(Math.random() * strAlphaNumeric.length)];
-  }
-  return strReturn;
-};
+const { generateRandomString, findUserByEmail, urlsForUser } = require("./helpers");
 
 // Setup view engine and required middleware
 app.set("view engine", "ejs");
@@ -66,35 +55,6 @@ const userDB = {
   }
 };
 
-/***************  HELPER FUNCTIONs  *****************************/
-// Search the objUserList for the email provided in strUserEmail
-const findUserByEmail = function(objUserList, strUserEmail) {
-  console.log('findUserByEmail express_server ln 44');
-  for (const user in objUserList) {
-    // console.log('find function:', user.email === strUserEmail);
-    if (objUserList[user].email === strUserEmail) {
-      console.log('in findbyemail:', objUserList[user]);
-      return objUserList[user];
-    }
-  }
-  return false;
-};
-
-// Filter urlDatabase to compare ID's of shortURL with currently logged in user
-const urlsForUser = (id) => {
-  console.log('in urlsForUser express_server ln 63');
-  let userURLS = {};
-  for (const url in urlDatabase) {
-    if (urlDatabase[url].userID === id) {
-      userURLS[url] = {
-        longURL: urlDatabase[url].longURL,
-        userID: urlDatabase[url].userID
-      };
-    }
-  }
-  return userURLS;
-};
-
 /********* REGISTRATION *****************************************/
 // Create a new userID & registration profile from registration page
 app.post("/register", (req, res) => {
@@ -102,7 +62,7 @@ app.post("/register", (req, res) => {
   if ((req.body.password === '') || (req.body.email === '')) {
     res.status(400).redirect("no_reg");
     res.end();
-  } else if (findUserByEmail(userDB, req.body.email)) {
+  } else if (findUserByEmail(req.body.email, userDB)) {
     console.log('userDB', userDB, 'reg email:', req.body.email);
     res.status(400).redirect("no_login");
     res.end();
@@ -147,11 +107,11 @@ app.get("/login", (req, res) => {
 // POST the results of the login form and redirect as necessary
 app.post("/login", (req, res) => {
   console.log('POST /login express_server ln 93');
-  const currentUser = findUserByEmail(userDB, req.body.email);
+  const currentUser = findUserByEmail(req.body.email, userDB);
   if (currentUser) {
     if (bcrypt.compareSync(req.body.password, currentUser.password)) {
       req.session["user_id"] = currentUser.id;
-      res.render("urls_index", {urls: urlsForUser(currentUser.id), user: currentUser});
+      res.render("urls_index", {urls: urlsForUser(currentUser.id, urlDatabase), user: currentUser});
     } else {
       res.status(403);
       res.redirect("no_login");
@@ -257,7 +217,7 @@ app.get("/urls", (req, res) => {
   if (!req.session["user_id"]) res.redirect("/no_login");
   else {
     const templateVars = {
-      urls: urlsForUser(req.session["user_id"]),
+      urls: urlsForUser(req.session["user_id"], urlDatabase),
       user: userDB[req.session["user_id"]] };
     res.render("urls_index", templateVars);
   }
@@ -275,7 +235,7 @@ app.get("/", (req, res) => {
   if (!req.session["user_id"]) res.redirect("/login");
   else {
     const templateVars = {
-      urls: urlsForUser(req.session["user_id"]),
+      urls: urlsForUser(req.session["user_id"], urlDatabase),
       user: userDB[req.session["user_id"]] };
     res.render("urls_index", templateVars);
   }
