@@ -107,7 +107,7 @@ app.post("/register", (req, res) => {
     const userID = generateRandomString();
     userDB[userID] = {
       id: userID,
-      password: bcrypt.hashSync(req.body.password, 10);
+      password: bcrypt.hashSync(req.body.password, 10),
       email: req.body.email };
     res.cookie('user_id', userID);
     res.redirect("/urls");
@@ -146,7 +146,7 @@ app.post("/login", (req, res) => {
   console.log('POST /login express_server ln 93');
   const currentUser = findUserByEmail(userDB, req.body.email);
   if (currentUser) {
-    if (currentUser.password === req.body.password) {
+    if (bcrypt.compareSync(req.body.password, currentUser.password)) {
       res.cookie('user_id', currentUser.id);
       res.render("urls_index", {urls: urlsForUser(currentUser.id), user: currentUser});
     } else {
