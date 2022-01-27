@@ -41,17 +41,17 @@ const userDB = {
   'deke76': {
     id: "deke76",
     email: "some@email.com",
-    password: "p@55w0Rd"
+    password: bcrypt.hashSync("p@55w0Rd", 10)
   },
   'abcdef': {
     id: 'abcdef',
     email: "hello@world.com",
-    password: "1234",
+    password: bcrypt.hashSync("1234", 10)
   },
   '49gjky': {
     id: '49gjky',
     email: "first@last.com",
-    password: "test"
+    password: bcrypt.hashSync("test", 10)
   }
 };
 
