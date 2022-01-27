@@ -26,12 +26,12 @@ const urlDatabase = {
     longURL: "http://www.google.com",
     userID: 'deke76'
   },
-  "dkjf784": {
-    longURL: "www.sportsnet.ca",
+  "dkj784": {
+    longURL: "http://www.sportsnet.ca",
     userID: 'abcdef'
   },
   "49gjky": {
-    longURL: "www.pinterest.ca",
+    longURL: "http://www.pinterest.ca",
     userID: '12hrg5'
   },
 };
@@ -48,8 +48,8 @@ const userDB = {
     email: "hello@world.com",
     password: bcrypt.hashSync("1234", 10)
   },
-  '49gjky': {
-    id: '49gjky',
+  '12hrg5': {
+    id: '12hrg5',
     email: "first@last.com",
     password: bcrypt.hashSync("test", 10)
   }
@@ -58,12 +58,11 @@ const userDB = {
 /********* REGISTRATION *****************************************/
 // Create a new userID & registration profile from registration page
 app.post("/register", (req, res) => {
-  console.log('POST /register express_server ln 58');
+  // console.log('POST /register express_server ln 61');
   if ((req.body.password === '') || (req.body.email === '')) {
     res.status(400).redirect("no_reg");
     res.end();
   } else if (findUserByEmail(req.body.email, userDB)) {
-    console.log('userDB', userDB, 'reg email:', req.body.email);
     res.status(400).redirect("no_login");
     res.end();
   } else {
@@ -79,166 +78,187 @@ app.post("/register", (req, res) => {
 
 // GET Registration page
 app.get("/register", (req, res) => {
-  console.log('GET /register express_server ln 79');
+  // console.log('GET /register express_server ln 81');
+  if (req.session["user_id"]) return res.redirect("/urls");
   const templateVars = {
     user: userDB[req.session["user_id"]] };
-  res.render("register.ejs", templateVars);
+  return res.render("register.ejs", templateVars);
 });
 
 // GET page for non-registered users
 app.get("/no_reg", (req, res) => {
+  // console.log('GET /no_reg express_server ln 89);
   const templateVars = {
     user: userDB[req.session["user_id"]] };
-  res.render("no_reg", templateVars);
+  return res.render("no_reg", templateVars);
 });
 
 // POST button on non-registered page to redirect to registraion page
 app.post("/no_reg", (req, res) => {
-  res.redirect("/register");
+  // console.log('POST /no_reg express_server ln 97);
+  return res.redirect("/register");
 });
 
 /************** LOGIN & LOGOUT **********************************/
 // Find the user in usersDB on login from _header.ejs
 app.get("/login", (req, res) => {
-  console.log('GET /login express_server ln 88');
-  res.render("login", { user: undefined });
+  // console.log('GET /login express_server ln 104');
+  if (req.session["user_id"]) return res.redirect("/urls");
+  return res.render("login", { user: undefined });
 });
 
 // POST the results of the login form and redirect as necessary
 app.post("/login", (req, res) => {
-  console.log('POST /login express_server ln 93');
+  // console.log('POST /login express_server ln 110');
   const currentUser = findUserByEmail(req.body.email, userDB);
   if (currentUser) {
     if (bcrypt.compareSync(req.body.password, currentUser.password)) {
       req.session["user_id"] = currentUser.id;
-      res.render("urls_index", {urls: urlsForUser(currentUser.id, urlDatabase), user: currentUser});
+      return res.render("urls_index", {urls: urlsForUser(currentUser.id, urlDatabase), user: currentUser});
     } else {
-      res.status(403);
-      res.redirect("no_login");
-      res.end();
+      return res.status(403).redirect("/no_login");
     }
-  } else res.redirect("no_reg");
+  }
+  return res.redirect("/no_reg");
 });
 
 // Logout username & clear cookie from _header.ejs
 app.post("/logout", (req, res) => {
-  console.log('POST /logout express_server ln 108');
+  // console.log('POST /logout express_server ln 126');
   req.session = null;
-  res.redirect('/urls');
+  return res.redirect('/urls');
 });
 
 // GET non-logged in user notice
 app.get("/no_login", (req, res) => {
+  // console.log('GET /no_login express_server ln 133);
   const templateVars = {
     user: userDB[req.session["user_id"]] };
-  res.render("no_login", templateVars);
+  return res.render("no_login", templateVars);
 });
 
 // POST the logoing form after pushing notification button on no-login page
 app.post("/no_login", (req, res) => {
-  res.redirect("/login");
+  // console.log('POST /no_login express_server ln 141)
+  return res.redirect("/login");
 });
 
 /********* URL MANIPULATION **************************************/
 // GET notification that user isn't owner of URL
 app.get("/not_owner", (req, res) => {
+  // console.log('GET /not_owner express_server ln 148');
   const templateVars = {
     user: userDB[req.session["user_id"]] };
-  res.render("not_owner", templateVars);
+  return res.render("not_owner", templateVars);
 });
 
 // POST the button to return user to URL index
 app.post("/not_owner", (req, res) => {
-  res.redirect("/urls");
+  // console.log('POST /not_owner express_server ln 156');
+  return res.redirect("/urls");
 });
 
-// Create a new TinyURL from urls_new.ejs
-app.post("/urls/new", (req, res) => {
-  console.log('POST /urls/new express_server ln 120');
+// POST a new TinyURL from urls_new.ejs
+app.post("/urls", (req, res) => {
+  // console.log('POST /urls/new express_server ln 162');
   const shortURL = generateRandomString();
   urlDatabase[shortURL] = {
     longURL: req.body.longURL,
     userID: req.session["user_id"] };
   const redirectPage = `/urls/${shortURL}`;
-  res.redirect(redirectPage);
+  return res.redirect(redirectPage);
 });
 
-// Navigation button to GET to screen to create new URL
+// GET navigation to screen to create new URL
 app.get("/urls/new", (req, res) => {
-  console.log('GET urls/new express_server ln 125');
+  // console.log('GET urls/new express_server ln 173');
   if (!req.session["user_id"]) {
-    res.redirect("/no_login");
-  } else {
-    const templateVars = {
-      user: userDB[req.session["user_id"]] };
-    res.render("urls_new", templateVars);
+    return res.redirect("/no_login");
   }
+  const templateVars = {
+    user: userDB[req.session["user_id"]] };
+  return res.render("urls_new", templateVars);
 });
 
-// Delete shortURL and longURL
-app.post("/urls/:shortURL/delete", (req, res) => {
-  console.log(`POST urls/:${req.params.shortURL}, express_server ln 133`);
+// POST Delete shortURL and longURL
+app.post("/urls/:id/delete", (req, res) => {
+  // console.log(`POST urls/:${req.params.id}/delete express_server ln 185`);
   if (req.session["user_id"]) {
-    if (req.session["user_id"] === urlDatabase[req.params.shortURL].userID) {
-      delete urlDatabase[req.params.shortURL];
-      res.redirect("/urls");
-    } else res.redirect("not_owner");
-  } else res.redirect("no_login");
+    if (req.session["user_id"] === urlDatabase[req.params.id].userID) {
+      delete urlDatabase[req.params.id];
+      return res.redirect("/urls");
+    }
+    return res.redirect("/not_owner");
+  }
+  return res.redirect("/no_login");
 });
 
-// Update the longURL from urls_show.ejs
+// POST to update the longURL from urls_show.ejs
 app.post("/urls/:id", (req, res) => {
-  console.log(`POST /urls/${req.params.id} express_server ln 140`);
+  // console.log(`POST /urls/${req.params.id} express_server ln 196`);
   if (req.session["user_id"]) {
     if (req.session["user_id"] !== urlDatabase[req.params.id].userID) {
-      console.log("POST/URLS");
-      res.redirect("/not_owner");
+      return res.redirect("/not_owner");
     } else {
       urlDatabase[req.params.id].longURL = req.body.longURL;
-      res.redirect("/urls");
+      return res.redirect("/urls");
     }
-  } else res.redirect("no_login");
+  }
+  return res.redirect("/no_login");
 });
 
 // GET the update URL page
-app.get("/urls/:shortURL", (req, res) => {
-  console.log(`GET /urls/${req.params} express_server ln 154`);
+app.get("/urls/:id", (req, res) => {
+  // console.log(`GET /urls/${urlDatabase[req.params.id].userID} express_server ln 209`);
+  if (!urlDatabase.hasOwnProperty(req.params.id)) {
+    return res.redirect("/not_owner");
+  }
+  if (!req.session["user_id"]) {
+    return res.redirect("/no_login");
+  }
+  if (urlDatabase[req.params.id].userID !== req.session["user_id"]) {
+    return res.redirect("/not_owner");
+  }
   const templateVars = {
-    shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL].longURL,
+    shortURL: req.params.id,
+    longURL: urlDatabase[req.params.id].longURL,
     user: userDB[req.session["user_id"]] };
-  res.render("urls_show", templateVars);
+  return res.render("urls_show", templateVars);
 });
 
 /**************** SITE NAVIGATION ******************************/
-// Navigation button to GET to URL index screen
+// GET Navigation button to URL index screen
 app.get("/urls", (req, res) => {
-  console.log('GET /urls express_server ln 178');
-  if (!req.session["user_id"]) res.redirect("/no_login");
-  else {
-    const templateVars = {
-      urls: urlsForUser(req.session["user_id"], urlDatabase),
-      user: userDB[req.session["user_id"]] };
-    res.render("urls_index", templateVars);
+  // console.log('GET /urls express_server ln 220');
+  if (!req.session["user_id"]) {
+    return res.redirect("/no_login");
   }
+  const templateVars = {
+    urls: urlsForUser(req.session["user_id"], urlDatabase),
+    user: userDB[req.session["user_id"]] };
+  return res.render("urls_index", templateVars);
 });
 
-// Redirect when shortURL is input
-app.get("/u/:shortURL", (req, res) => {
-  console.log(`GET /u/${req.params.shortURL} express_server ln 181`);
-  res.redirect(urlDatabase[req.params.shortURL].longURL);
+// GET redirect when shortURL is input
+app.get("/u/:id", (req, res) => {
+  console.log(`GET /u/${req.params.id} express_server ln 233`);
+  if (urlDatabase[req.params.id] === undefined) {
+    console.log(`line 246 ${urlDatabase[req.params.id]}`);
+    return res.send("This URL doesn't exist yet");
+  }
+  res.redirect(urlDatabase[req.params.id].longURL);
 });
 
-// Return the root directory from urls_index.ejs
+// GET the root directory from urls_index.ejs
 app.get("/", (req, res) => {
-  console.log('GET / express_server ln 187');
-  if (!req.session["user_id"]) res.redirect("/login");
-  else {
-    const templateVars = {
-      urls: urlsForUser(req.session["user_id"], urlDatabase),
-      user: userDB[req.session["user_id"]] };
-    res.render("urls_index", templateVars);
+  // console.log('GET / express_server ln 239');
+  if (!req.session["user_id"]) {
+    return res.redirect("/login");
   }
+  const templateVars = {
+    urls: urlsForUser(req.session["user_id"], urlDatabase),
+    user: userDB[req.session["user_id"]] };
+  return res.render("urls_index", templateVars);
 });
 
 app.listen(PORT, () => {

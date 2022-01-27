@@ -1,6 +1,6 @@
 // Create a random string for ShortURL, middleware & userID
 const generateRandomString = function() {
-  console.log('generateRandomString express_server ln 32');
+  // console.log('generateRandomString helpers ln 3');
   const length = 6;
   const strAlphaNumeric = 'abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   let strReturn = '';
@@ -13,9 +13,8 @@ const generateRandomString = function() {
 // Search the objUserList for the email provided in strUserEmail
 const findUserByEmail = function(strUserEmail, objUserList) {
   for (const user in objUserList) {
-    // console.log('find function:', user.email === strUserEmail);
+    // console.log('findUserByEmail helpers ln 16);
     if (objUserList[user].email === strUserEmail) {
-      console.log('in findbyemail:', objUserList[user]);
       return objUserList[user];
     }
   }
@@ -24,6 +23,7 @@ const findUserByEmail = function(strUserEmail, objUserList) {
 
 // Filter urlDatabase to compare ID's of shortURL with currently logged in user
 const urlsForUser = (id, urlDatabase) => {
+  // console.log('urlsForUser helpers ln 27
   let userURLS = {};
   for (const url in urlDatabase) {
     if (urlDatabase[url].userID === id) {

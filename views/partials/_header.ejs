@@ -10,7 +10,7 @@
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
       </div>
       <% if (user === undefined) { %>
-        <% console.log('in _header user is undefined'); %>
+        <% // console.log('in _header user is undefined'); %>
         <div class="form-inline">
           <form class="form-inline" action="/login" method="GET">
             <button type="submit" class="btn btn-primary ml-2" value="login" >Login</button></form>
@@ -18,7 +18,7 @@
             <button type="submit" class="btn btn-primary ml-2" value="register" >Register</button></form>
         </div>
       <% } else { %>
-        <% console.log('user is', user); %>
+        <% // console.log('user is', user); %>
         <form class="form-inline" action="/logout" method="POST">
           <label class="text-light" for="email"><%= user.email %></label>
           <button type="submit" class="btn btn-primary ml-2" name="email" value="Logout">Logout</button></form>
