@@ -1,15 +1,30 @@
 // Required constants
 const express = require("express");
 const bodyParser = require('body-parser');
-const cookieParser = require('cookie-parser');
+const cookieSession = require('cookie-session');
 const bcrypt = require('bcryptjs');
 const app = express();
 const PORT = 8080; // default port 8080
 
+// Create a random string for ShortURL, middleware & userID
+const generateRandomString = function() {
+  console.log('generateRandomString express_server ln 32');
+  const length = 6;
+  const strAlphaNumeric = 'abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  let strReturn = '';
+  for (let i = 0; i <= length; i++) {
+    strReturn += strAlphaNumeric[Math.floor(Math.random() * strAlphaNumeric.length)];
+  }
+  return strReturn;
+};
+
 // Setup view engine and required middleware
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended: true}));
-app.use(cookieParser());
+app.use(cookieSession({
+  name: 'session',
+  keys: [generateRandomString()]
+}));
 
 /***************  DATA  ****************************************/
 // URL database
@@ -52,18 +67,6 @@ const userDB = {
 };
 
 /***************  HELPER FUNCTIONs  *****************************/
-// Create a random string for ShortURL & userID
-const generateRandomString = function() {
-  console.log('generateRandomString express_server ln 32');
-  const length = 6;
-  const strAlphaNumeric = 'abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  let strReturn = '';
-  for (let i = 0; i <= length; i++) {
-    strReturn += strAlphaNumeric[Math.floor(Math.random() * strAlphaNumeric.length)];
-  }
-  return strReturn;
-};
-
 // Search the objUserList for the email provided in strUserEmail
 const findUserByEmail = function(objUserList, strUserEmail) {
   console.log('findUserByEmail express_server ln 44');
@@ -109,7 +112,7 @@ app.post("/register", (req, res) => {
       id: userID,
       password: bcrypt.hashSync(req.body.password, 10),
       email: req.body.email };
-    res.cookie('user_id', userID);
+    req.session["user_id"] = userID;
     res.redirect("/urls");
   }
 });
@@ -118,14 +121,14 @@ app.post("/register", (req, res) => {
 app.get("/register", (req, res) => {
   console.log('GET /register express_server ln 79');
   const templateVars = {
-    user: userDB[req.cookies["user_id"]] };
+    user: userDB[req.session["user_id"]] };
   res.render("register.ejs", templateVars);
 });
 
 // GET page for non-registered users
 app.get("/no_reg", (req, res) => {
   const templateVars = {
-    user: userDB[req.cookies["user_id"]] };
+    user: userDB[req.session["user_id"]] };
   res.render("no_reg", templateVars);
 });
 
@@ -147,7 +150,7 @@ app.post("/login", (req, res) => {
   const currentUser = findUserByEmail(userDB, req.body.email);
   if (currentUser) {
     if (bcrypt.compareSync(req.body.password, currentUser.password)) {
-      res.cookie('user_id', currentUser.id);
+      req.session["user_id"] = currentUser.id;
       res.render("urls_index", {urls: urlsForUser(currentUser.id), user: currentUser});
     } else {
       res.status(403);
@@ -160,14 +163,14 @@ app.post("/login", (req, res) => {
 // Logout username & clear cookie from _header.ejs
 app.post("/logout", (req, res) => {
   console.log('POST /logout express_server ln 108');
-  res.clearCookie('user_id');
+  req.session = null;
   res.redirect('/urls');
 });
 
 // GET non-logged in user notice
 app.get("/no_login", (req, res) => {
   const templateVars = {
-    user: userDB[req.cookies["user_id"]] };
+    user: userDB[req.session["user_id"]] };
   res.render("no_login", templateVars);
 });
 
@@ -180,7 +183,7 @@ app.post("/no_login", (req, res) => {
 // GET notification that user isn't owner of URL
 app.get("/not_owner", (req, res) => {
   const templateVars = {
-    user: userDB[req.cookies["user_id"]] };
+    user: userDB[req.session["user_id"]] };
   res.render("not_owner", templateVars);
 });
 
@@ -195,7 +198,7 @@ app.post("/urls/new", (req, res) => {
   const shortURL = generateRandomString();
   urlDatabase[shortURL] = {
     longURL: req.body.longURL,
-    userID: req.cookies["user_id"] };
+    userID: req.session["user_id"] };
   const redirectPage = `/urls/${shortURL}`;
   res.redirect(redirectPage);
 });
@@ -203,11 +206,11 @@ app.post("/urls/new", (req, res) => {
 // Navigation button to GET to screen to create new URL
 app.get("/urls/new", (req, res) => {
   console.log('GET urls/new express_server ln 125');
-  if (!req.cookies["user_id"]) {
+  if (!req.session["user_id"]) {
     res.redirect("/no_login");
   } else {
     const templateVars = {
-      user: userDB[req.cookies["user_id"]] };
+      user: userDB[req.session["user_id"]] };
     res.render("urls_new", templateVars);
   }
 });
@@ -215,8 +218,8 @@ app.get("/urls/new", (req, res) => {
 // Delete shortURL and longURL
 app.post("/urls/:shortURL/delete", (req, res) => {
   console.log(`POST urls/:${req.params.shortURL}, express_server ln 133`);
-  if (req.cookies["user_id"]) {
-    if (req.cookies["user_id"] === urlDatabase[req.params.shortURL].userID) {
+  if (req.session["user_id"]) {
+    if (req.session["user_id"] === urlDatabase[req.params.shortURL].userID) {
       delete urlDatabase[req.params.shortURL];
       res.redirect("/urls");
     } else res.redirect("not_owner");
@@ -226,8 +229,8 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 // Update the longURL from urls_show.ejs
 app.post("/urls/:id", (req, res) => {
   console.log(`POST /urls/${req.params.id} express_server ln 140`);
-  if (req.cookies["user_id"]) {
-    if (req.cookies["user_id"] !== urlDatabase[req.params.id].userID) {
+  if (req.session["user_id"]) {
+    if (req.session["user_id"] !== urlDatabase[req.params.id].userID) {
       console.log("POST/URLS");
       res.redirect("/not_owner");
     } else {
@@ -243,7 +246,7 @@ app.get("/urls/:shortURL", (req, res) => {
   const templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL].longURL,
-    user: userDB[req.cookies["user_id"]] };
+    user: userDB[req.session["user_id"]] };
   res.render("urls_show", templateVars);
 });
 
@@ -251,11 +254,11 @@ app.get("/urls/:shortURL", (req, res) => {
 // Navigation button to GET to URL index screen
 app.get("/urls", (req, res) => {
   console.log('GET /urls express_server ln 178');
-  if (!req.cookies["user_id"]) res.redirect("/no_login");
+  if (!req.session["user_id"]) res.redirect("/no_login");
   else {
     const templateVars = {
-      urls: urlsForUser(req.cookies["user_id"]),
-      user: userDB[req.cookies["user_id"]] };
+      urls: urlsForUser(req.session["user_id"]),
+      user: userDB[req.session["user_id"]] };
     res.render("urls_index", templateVars);
   }
 });
@@ -269,11 +272,11 @@ app.get("/u/:shortURL", (req, res) => {
 // Return the root directory from urls_index.ejs
 app.get("/", (req, res) => {
   console.log('GET / express_server ln 187');
-  if (!req.cookies["user_id"]) res.redirect("/login");
+  if (!req.session["user_id"]) res.redirect("/login");
   else {
     const templateVars = {
-      urls: urlsForUser(req.cookies["user_id"]),
-      user: userDB[req.cookies["user_id"]] };
+      urls: urlsForUser(req.session["user_id"]),
+      user: userDB[req.session["user_id"]] };
     res.render("urls_index", templateVars);
   }
 });
