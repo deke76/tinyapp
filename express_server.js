@@ -13,8 +13,14 @@ app.use(cookieParser());
 /***************  DATA  ****************************************/
 // URL database
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "b2xVn2": {
+    longURL: "http://www.lighthouselabs.ca",
+    userID: 'deke76'
+  },
+  "9sm5xK": {
+    longURL: "http://www.google.com",
+    userID: 'deke76'
+  }
 };
 
 // user database
@@ -94,8 +100,6 @@ app.post("/login", (req, res) => {
   const currentUser = findUserByEmail(userDB, req.body.email);
   if (currentUser.password === req.body.password) {
     res.cookie('user_id', currentUser.id);
-    // console.log(req.cookies['user_id']);
-    // console.log(currentUser);
     res.render("urls_index", {urls: urlDatabase, user: currentUser});
   } else {
     res.status(403).send("User not found or password incorrect");
@@ -113,9 +117,11 @@ app.post("/logout", (req, res) => {
 /********* URL MANIPULATION **************************************/
 // Create a new TinyURL from urls_new.ejs
 app.post("/urls/new", (req, res) => {
-  console.log('POST /urls/new express_server ln 116');
+  console.log('POST /urls/new express_server ln 120');
   const shortURL = generateRandomString();
-  urlDatabase[shortURL] = req.body.longURL;
+  urlDatabase[shortURL] = {
+    longURL: req.body.longURL,
+    userID: req.cookies["user_id"] };
   const redirectPage = `/urls/${shortURL}`;
   res.redirect(redirectPage);
 });
@@ -123,9 +129,12 @@ app.post("/urls/new", (req, res) => {
 // Navigation button to GET to screen to create new URL
 app.get("/urls/new", (req, res) => {
   console.log('GET urls/new express_server ln 125');
-  const templateVars = {
-    user: userDB[req.cookies["user_id"]] };
-  res.render("urls_new", templateVars);
+  if (!req.cookies["user_id"]) res.redirect("/login");
+  else {
+    const templateVars = {
+      user: userDB[req.cookies["user_id"]] };
+    res.render("urls_new", templateVars);
+  }
 });
 
 // Delete shortURL and longURL
@@ -138,16 +147,16 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 // Update the longURL from urls_show.ejs
 app.post("/urls/:id", (req, res) => {
   console.log(`POST /urls/${req.params.id} express_server ln 140`);
-  urlDatabase[req.params.id] = req.body.longURL;
+  urlDatabase[req.params.id].longURL = req.body.longURL;
   res.redirect("/urls");
 });
 
 // Update the URL
 app.get("/urls/:shortURL", (req, res) => {
-  console.log(`GET /urls/${req.params.shortURL} express_server ln 147`);
+  console.log(`GET /urls/${req.params.shortURL} express_server ln 154`);
   const templateVars = {
     shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL],
+    longURL: urlDatabase[req.params.shortURL].longURL,
     user: userDB[req.cookies["user_id"]] };
   res.render("urls_show", templateVars);
 });
@@ -155,7 +164,7 @@ app.get("/urls/:shortURL", (req, res) => {
 /**************** SITE NAVIGATION ******************************/
 // Navigation button to GET to URL index screen
 app.get("/urls", (req, res) => {
-  console.log('GET /urls express_server ln 158');
+  console.log('GET /urls express_server ln 165');
   const templateVars = {
     urls: urlDatabase,
     user: userDB[req.cookies["user_id"]] };
@@ -166,8 +175,8 @@ app.get("/urls", (req, res) => {
 
 // Redirect when shortURL is input
 app.get("/u/:shortURL", (req, res) => {
-  console.log(`GET /u/:${req.params.shortURL} express_server ln 169`);
-  res.redirect(urlDatabase[req.params.shortURL]);
+  console.log(`GET /u/${req.params.shortURL} express_server ln 178`);
+  res.redirect(urlDatabase[req.params.shortURL].longURL);
 });
 
 // Return the root directory from urls_index.ejs
