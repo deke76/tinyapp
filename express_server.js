@@ -173,6 +173,8 @@ app.post("/urls", (req, res) => {
   // console.log('POST /urls/new express_server ln 162');
   const shortURL = generateRandomString();
   urlDatabase[shortURL] = {
+    numVisits: 0,
+    visitors: {},
     longURL: req.body.longURL,
     userID: req.session["user_id"] };
   const redirectPage = `/urls/${shortURL}`;
@@ -183,7 +185,7 @@ app.post("/urls", (req, res) => {
 app.get("/urls/new", (req, res) => {
   // console.log('GET urls/new express_server ln 173');
   if (!req.session["user_id"]) {
-    return res.redirect("/no_login");
+    return res.redirect("/login");
   }
   const templateVars = {
     user: userDB[req.session["user_id"]] };
@@ -220,7 +222,7 @@ app.put("/urls/:id", (req, res) => {
 // GET the update URL page
 app.get("/urls/:id", (req, res) => {
   // console.log(`GET /urls/${urlDatabase[req.params.id].userID} express_server ln 209`);
-  if (!urlDatabase.hasOwnProperty(req.params.id)) {
+  if (!Object.prototype.hasOwnProperty.call(urlDatabase, req.params.id)) {
     return res.redirect("/not_owner");
   }
   if (!req.session["user_id"]) {
@@ -260,7 +262,7 @@ app.get("/u/:id", (req, res) => {
   if (!req.session["user_id"]) {
     req.session["user_id"] = generateRandomString();
   }
-  if (!urlDatabase[req.params.id].visitors.hasOwnProperty(req.session["user_id"])) {
+  if (!Object.prototype.hasOwnProperty.call(urlDatabase[req.params.id].visitors, req.session["user_id"])) {
     urlDatabase[req.params.id].visitors[req.session["user_id"]] = [];
   }
   urlDatabase[req.params.id].visitors[req.session["user_id"]].push(Math.floor(Date.now() / 1000));
