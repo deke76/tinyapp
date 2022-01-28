@@ -3,13 +3,15 @@ const express = require("express");
 const bodyParser = require('body-parser');
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcryptjs');
-const app = express();
+const methodOverride = require('method-override');
 const PORT = 8080; // default port 8080
 const { generateRandomString, findUserByEmail, urlsForUser } = require("./helpers");
 
 // Setup view engine and required middleware
+const app = express();
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(methodOverride('_method'));
 app.use(cookieSession({
   name: 'session',
   keys: [generateRandomString()]
@@ -20,19 +22,27 @@ app.use(cookieSession({
 const urlDatabase = {
   "b2xVn2": {
     longURL: "http://www.lighthouselabs.ca",
-    userID: 'deke76'
+    userID: 'deke76',
+    numVisits: 0,
+    visitors: {}
   },
   "9sm5xK": {
     longURL: "http://www.google.com",
-    userID: 'deke76'
+    userID: 'deke76',
+    numVisits: 0,
+    visitors: {}
   },
   "dkj784": {
     longURL: "http://www.sportsnet.ca",
-    userID: 'abcdef'
+    userID: 'abcdef',
+    numVisits: 0,
+    visitors: {}
   },
   "49gjky": {
     longURL: "http://www.pinterest.ca",
-    userID: '12hrg5'
+    userID: '12hrg5',
+    numVisits: 0,
+    visitors: {}
   },
 };
 
@@ -137,7 +147,7 @@ app.get("/no_login", (req, res) => {
   return res.render("no_login", templateVars);
 });
 
-// POST the logoing form after pushing notification button on no-login page
+// POST the login form after pushing notification button on no-login page
 app.post("/no_login", (req, res) => {
   // console.log('POST /no_login express_server ln 141)
   return res.redirect("/login");
@@ -180,9 +190,9 @@ app.get("/urls/new", (req, res) => {
   return res.render("urls_new", templateVars);
 });
 
-// POST Delete shortURL and longURL
-app.post("/urls/:id/delete", (req, res) => {
-  // console.log(`POST urls/:${req.params.id}/delete express_server ln 185`);
+// DELETE shortURL and longURL
+app.delete("/urls/:id", (req, res) => {
+  console.log(`POST urls/:${req.params.id}/delete express_server ln 185`);
   if (req.session["user_id"]) {
     if (req.session["user_id"] === urlDatabase[req.params.id].userID) {
       delete urlDatabase[req.params.id];
@@ -193,8 +203,8 @@ app.post("/urls/:id/delete", (req, res) => {
   return res.redirect("/no_login");
 });
 
-// POST to update the longURL from urls_show.ejs
-app.post("/urls/:id", (req, res) => {
+// PUT update the longURL from urls_show.ejs
+app.put("/urls/:id", (req, res) => {
   // console.log(`POST /urls/${req.params.id} express_server ln 196`);
   if (req.session["user_id"]) {
     if (req.session["user_id"] !== urlDatabase[req.params.id].userID) {
@@ -220,9 +230,10 @@ app.get("/urls/:id", (req, res) => {
     return res.redirect("/not_owner");
   }
   const templateVars = {
+    ...urlDatabase[req.params.id],
     shortURL: req.params.id,
-    longURL: urlDatabase[req.params.id].longURL,
     user: userDB[req.session["user_id"]] };
+  console.log(templateVars);
   return res.render("urls_show", templateVars);
 });
 
@@ -243,9 +254,17 @@ app.get("/urls", (req, res) => {
 app.get("/u/:id", (req, res) => {
   console.log(`GET /u/${req.params.id} express_server ln 233`);
   if (urlDatabase[req.params.id] === undefined) {
-    console.log(`line 246 ${urlDatabase[req.params.id]}`);
     return res.send("This URL doesn't exist yet");
   }
+  urlDatabase[req.params.id].numVisits++;
+  if (!req.session["user_id"]) {
+    req.session["user_id"] = generateRandomString();
+  }
+  if (!urlDatabase[req.params.id].visitors.hasOwnProperty(req.session["user_id"])) {
+    urlDatabase[req.params.id].visitors[req.session["user_id"]] = [];
+  }
+  urlDatabase[req.params.id].visitors[req.session["user_id"]].push(Math.floor(Date.now() / 1000));
+  console.log(urlDatabase[req.params.id]);
   res.redirect(urlDatabase[req.params.id].longURL);
 });
 
@@ -255,10 +274,7 @@ app.get("/", (req, res) => {
   if (!req.session["user_id"]) {
     return res.redirect("/login");
   }
-  const templateVars = {
-    urls: urlsForUser(req.session["user_id"], urlDatabase),
-    user: userDB[req.session["user_id"]] };
-  return res.render("urls_index", templateVars);
+  return res.redirect("/urls");
 });
 
 app.listen(PORT, () => {
