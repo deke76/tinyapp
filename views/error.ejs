@@ -15,10 +15,10 @@
         <div class="text-center">
         <form class="justify-content-center" action="/error" method="POST">
           <div class="form-inline-row text-center">
-          <p>Generic error holding page</p>
+          <p><%= errorMessage %></p>
           </div>
           <div class="justify-content-center">
-            <button type="submit" class="btn btn-primary" value="index">Go to My URLs</button>
+            <button type="submit" class="btn btn-primary" value="<%= redirect %>"><%= buttonName %></button>
           </div>
         </form>
         </div>
