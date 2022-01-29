@@ -131,10 +131,11 @@ app.post("/urls", (req, res) => {
   let tempLongURL = !req.body.longURL.includes('http://')
     ? 'http://' + req.body.longURL
     : req.body.longURL;
+  const rightNow = new Date();
   urlDatabase[shortURL] = {
     numVisits: 0,
     visitors: {},
-    dateCreated: Date.now();
+    dateCreated: rightNow.toLocaleString(),
     longURL: tempLongURL,
     userID: req.session["user_id"]
   };
@@ -184,19 +185,24 @@ app.put("/urls/:id", (req, res) => {
 
 // GET the update URL page
 app.get("/urls/:id", (req, res) => {
-  if ((!Object.prototype.hasOwnProperty.call(urlDatabase, req.params.id)) ||
-    (urlDatabase[req.params.id].userID !== req.session["user_id"])) {
-    return res.redirect("/not_owner");
-  }
-  if (!req.session["user_id"]) {
-    return res.redirect("/no_login");
-  }
   const templateVars = {
-    ...urlDatabase[req.params.id],
+    urls: urlDatabase[req.params.id],
     shortURL: req.params.id,
     user: userDB[req.session["user_id"]],
     errorMsg: ''
   };
+  console.log(templateVars);
+  if (!req.session["user_id"]) {
+    return res.redirect("/no_login");
+  }
+  if (!Object.prototype.hasOwnProperty.call(urlDatabase, req.params.id)) {
+    templateVars.urls = urlsForUser(req.session["user_id"], urlDatabase);
+    templateVars.errorMsg = "Shortcut Doesn't exist";
+    return res.render("urls_index", templateVars);
+  }
+  if (urlDatabase[req.params.id].userID !== req.session["user_id"]) {
+    return res.redirect("/not_owner");
+  }
   return res.render("urls_show", templateVars);
 });
 
@@ -211,6 +217,7 @@ app.get("/urls", (req, res) => {
     user: userDB[req.session["user_id"]],
     errorMsg: ''
   };
+  console.log(templateVars.urls);
   return res.render("urls_index", templateVars);
 });
 

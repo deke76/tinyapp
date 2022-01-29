@@ -12,8 +12,8 @@
     <div class="card text-center">
         <div class="card-header"></div>
         <div class="card-body">
-          <h5 class="card-title">TinyURL for: <%= longURL %></h5>
-          <h6 class="card-text">Short URL: <a href="<%= longURL %>"><%= shortURL %></a></h6></div>
+          <h5 class="card-title">TinyURL for: <%= urls.longURL %></h5>
+          <h6 class="card-text">Short URL: <a href="<%= urls.longURL %>"><%= shortURL %></a></h6></div>
         <div class="card-footer text-muted"></div></div>
     <div class="card text-center">  
         <div class="card-body">
@@ -26,8 +26,9 @@
     <div class="card text-center">  
       <div class="card-body">
         <h5 class="card-title text-muted">Analytics</h5>
-        <h6 class="card-text">Number of visits: <%= numVisits %></h6>
-        <h6 class="card-text">Number of visitors: <%= Object.keys(visitors).length %></h6>
+        <h6 class="card-text">Number of visits: <%= urls.numVisits %></h6>
+        <h6 class="card-text">Number of visitors: <%= Object.keys(urls.visitors).length %></h6>
+        <h6 class="card-text">Date created: <%= urls.dateCreated %></h6>
         <table class="table">
           <thead>
             <tr>
@@ -37,9 +38,9 @@
           </thead>
           <tbody>
               <tr class="align-center">
-                <% for (const visitor in visitors) { %>
+                <% for (const visitor in urls.visitors) { %>
                 <td><%= visitor %></td>              
-                <td><%= visitors[visitor].join(', ') %>
+                <td><%= urls.visitors[visitor].join(', ') %>
                     <% } %></td>
               </tr></tbody></table></div></div>
     <div class="card-footer text-muted"></div>

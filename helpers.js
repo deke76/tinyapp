@@ -1,5 +1,3 @@
-const { userDB } = require("./data");
-
 // Create a random string for ShortURL, middleware & userID
 const generateRandomString = function() {
   // console.log('generateRandomString helpers ln 3');
@@ -35,10 +33,7 @@ const urlsForUser = (id, urlDatabase) => {
   let userURLS = {};
   for (const url in urlDatabase) {
     if (urlDatabase[url].userID === id) {
-      userURLS[url] = {
-        longURL: urlDatabase[url].longURL,
-        userID: urlDatabase[url].userID
-      };
+      userURLS[url] = { ...urlDatabase[url] };
     }
   }
   return userURLS;

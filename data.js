@@ -6,24 +6,28 @@ const urlDatabase = {
     longURL: "http://www.lighthouselabs.ca",
     userID: 'deke76',
     numVisits: 0,
+    dateCreated: Date().toLocaleString(),
     visitors: {}
   },
   "9sm5xK": {
     longURL: "http://www.google.com",
     userID: 'deke76',
     numVisits: 0,
+    dateCreated: Date().toLocaleString(),
     visitors: {}
   },
   "dkj784": {
     longURL: "http://www.sportsnet.ca",
     userID: 'abcdef',
     numVisits: 0,
+    dateCreated: Date().toLocaleString(),
     visitors: {}
   },
   "49gjky": {
     longURL: "http://www.pinterest.ca",
     userID: '12hrg5',
     numVisits: 0,
+    dateCreated: Date().toLocaleString(),
     visitors: {}
   },
 };
