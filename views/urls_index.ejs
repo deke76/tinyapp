@@ -7,31 +7,40 @@
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
   <title>TinyApp</title>
+
 </head>
 <body>
   <%- include('partials/_header') %>
-  <main style="margin: 1em;">
-    <h3>My URLs</h3>
-    <table class="table">
-      <thead>
-        <tr>
-          <th scope="col">Short URL</th>
-          <th scope="col">Long URL</th>
-          <th scope="col">Edit</th>
-          <th scope="col">Delete</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% for(let url in urls) { %>
-          <tr class="align-center">
-            <td><a href="/u/<%= url %>"><%= url %></a></td>
-            <td><%= urls[url].longURL %></td>
-            <td><form method="GET" action="/urls/<%= url %>"><button class="btn btn-light">Update</button></form></td>
-            <td><form method="POST" action="/urls/<%= url %>?_method=DELETE"><button class="btn btn-warning">Delete</button></form></td>
-          </tr>
-        <% } %>
-      </tbody>
-    </table>
+  <main class="text-center" style="margin: 1em">
+    <div class="card text-center">
+      <div class="card-header"></div>
+      <div class="card-body">
+        <h5 class="card-title text-muted">My URLs</h5>
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">Short URL</th>
+              <th scope="col">Long URL</th>
+              <th scope="col">Edit</th>
+              <th scope="col">Delete</th>
+            </tr></thead>
+          <tbody>
+            <% for(let url in urls) { %>
+              <tr class="align-center">
+                <td><a href="/u/<%= url %>"><%= url %></a></td>
+                <td><%= urls[url].longURL %></td>
+                <td><form method="GET" action="/urls/<%= url %>"><button class="btn btn-light">Update</button></form></td>
+                <td><form method="POST" action="/urls/<%= url %>?_method=DELETE"><button class="btn btn-warning">Delete</button></form></td></tr>
+            <% } %>
+          </tbody></table></div>
+      <div class="card-footer text-muted"></div>
+      <div class="card text-center">  
+          <div class="card-body">
+            <h5 class="card-title text-muted"></h5>
+            <h6 class="card-text text-muted"><em><%= errorMsg %></em></h6>
+            <h6 class="card-text"></h6>
+          </div></div>
+        <div class="card-footer text-muted"></div></div>
   </main>
   <!-- Bootstrap JS -->
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>

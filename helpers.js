@@ -1,3 +1,5 @@
+const { userDB } = require("./data");
+
 // Create a random string for ShortURL, middleware & userID
 const generateRandomString = function() {
   // console.log('generateRandomString helpers ln 3');
@@ -13,7 +15,6 @@ const generateRandomString = function() {
 // Search the objUserList for the email provided in strUserEmail
 const findUserByEmail = function(strUserEmail, objUserList) {
   for (const user in objUserList) {
-    // console.log('findUserByEmail helpers ln 16);
     if (objUserList[user].email === strUserEmail) {
       return objUserList[user];
     }
@@ -21,9 +22,16 @@ const findUserByEmail = function(strUserEmail, objUserList) {
   return undefined;
 };
 
+// Search the registered users, return user if they exits and undefined if not
+const findUserByID = function(strUserID, objUserList) {
+  for (const user in objUserList) {
+    if (strUserID === user) return objUserList[user];
+  }
+  return undefined;
+};
+
 // Filter urlDatabase to compare ID's of shortURL with currently logged in user
 const urlsForUser = (id, urlDatabase) => {
-  // console.log('urlsForUser helpers ln 27
   let userURLS = {};
   for (const url in urlDatabase) {
     if (urlDatabase[url].userID === id) {
@@ -36,4 +44,4 @@ const urlsForUser = (id, urlDatabase) => {
   return userURLS;
 };
 
-module.exports = { generateRandomString, findUserByEmail, urlsForUser };
+module.exports = { generateRandomString, findUserByEmail, urlsForUser, findUserByID };
